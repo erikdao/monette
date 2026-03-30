@@ -5,10 +5,30 @@ struct BackgroundPicker: View {
 
     private let presetColumns = [GridItem(.adaptive(minimum: 44), spacing: 8)]
 
+    private static let solidPresets: [Color] = [
+        Color(white: 0.08),  // near-black ("no background")
+        .black,
+        Color(white: 0.2),
+        Color(white: 0.95),
+        .white,
+        .red,
+        .orange,
+        .yellow,
+        .green,
+        .mint,
+        .cyan,
+        .blue,
+        .indigo,
+        .purple,
+        .pink,
+        .brown,
+    ]
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Background")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             Picker("Type", selection: $background.type) {
                 Text("Solid").tag(BackgroundType.solid)
@@ -16,21 +36,33 @@ struct BackgroundPicker: View {
             }
             .pickerStyle(.segmented)
 
-            presetGrid
+            if background.type == .gradient {
+                gradientPresetGrid
+            } else {
+                solidPresetGrid
+            }
 
             colorControls
         }
     }
 
-    private var presetGrid: some View {
+    private var gradientPresetGrid: some View {
         LazyVGrid(columns: presetColumns, spacing: 8) {
             ForEach(GradientPreset.builtIn) { preset in
-                presetButton(preset)
+                gradientPresetButton(preset)
             }
         }
     }
 
-    private func presetButton(_ preset: GradientPreset) -> some View {
+    private var solidPresetGrid: some View {
+        LazyVGrid(columns: presetColumns, spacing: 8) {
+            ForEach(Array(Self.solidPresets.enumerated()), id: \.offset) { _, color in
+                solidPresetButton(color)
+            }
+        }
+    }
+
+    private func gradientPresetButton(_ preset: GradientPreset) -> some View {
         Button {
             background.type = .gradient
             background.gradientStartColor = preset.startColor
@@ -45,6 +77,22 @@ struct BackgroundPicker: View {
                         endPoint: .bottomTrailing
                     )
                 )
+                .frame(height: 44)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                )
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func solidPresetButton(_ color: Color) -> some View {
+        Button {
+            background.type = .solid
+            background.solidColor = color
+        } label: {
+            RoundedRectangle(cornerRadius: 6)
+                .fill(color)
                 .frame(height: 44)
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)

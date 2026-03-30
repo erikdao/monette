@@ -9,7 +9,8 @@ struct BorderRadiusSlider: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Corner Radius")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             LabeledSlider(
                 label: "Radius",

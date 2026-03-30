@@ -9,7 +9,8 @@ struct PaddingSlider: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Padding")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             LabeledSlider(
                 label: "Size",

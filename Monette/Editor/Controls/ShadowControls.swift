@@ -6,7 +6,8 @@ struct ShadowControls: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Shadow")
-                .font(.headline)
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.secondary)
 
             LabeledSlider(
                 label: "Blur",

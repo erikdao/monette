@@ -25,4 +25,16 @@ enum ExportManager {
         CGImageDestinationAddImage(destination, composited, nil)
         CGImageDestinationFinalize(destination)
     }
+
+    static func copyToClipboard(screenshot: CGImage, style: StylePreset) {
+        guard let composited = ImageCompositor.composite(screenshot: screenshot, style: style) else {
+            return
+        }
+
+        let rep = NSBitmapImageRep(cgImage: composited)
+        guard let pngData = rep.representation(using: .png, properties: [:]) else { return }
+
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setData(pngData, forType: .png)
+    }
 }
