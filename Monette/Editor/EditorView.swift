@@ -4,18 +4,19 @@ struct EditorView: View {
     @Environment(AppState.self) private var appState
 
     private let inspectorWidth: CGFloat = 280
+    private let inspectorCornerRadius: CGFloat = 12
+    private let inspectorPadding: CGFloat = 10
 
     var body: some View {
         @Bindable var appState = appState
 
-        HStack(spacing: 0) {
+        ZStack(alignment: .trailing) {
             CanvasView(screenshot: appState.screenshot.image, style: appState.style)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(Color(white: 0.12))
 
-            Divider()
-
             inspectorSidebar(appState: $appState)
+                .padding(inspectorPadding)
         }
         .toolbar {
             ToolbarItem(placement: .automatic) {
@@ -44,5 +45,7 @@ struct EditorView: View {
         }
         .frame(width: inspectorWidth)
         .background(.ultraThinMaterial)
+        .clipShape(RoundedRectangle(cornerRadius: inspectorCornerRadius))
+        .shadow(color: .black.opacity(0.25), radius: 12, x: 0, y: 4)
     }
 }

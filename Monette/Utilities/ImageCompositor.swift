@@ -68,14 +68,7 @@ enum ImageCompositor {
         context.saveGState()
         context.addPath(roundedPath)
         context.clip()
-
-        // CG draws images in Y-up, so flip within the screenshot rect
-        context.saveGState()
-        context.translateBy(x: screenshotRect.origin.x, y: screenshotRect.origin.y + screenshotRect.height)
-        context.scaleBy(x: 1, y: -1)
-        context.draw(screenshot, in: CGRect(origin: .zero, size: screenshotRect.size))
-        context.restoreGState()
-
+        context.draw(screenshot, in: screenshotRect)
         context.restoreGState()
 
         return context.makeImage()
