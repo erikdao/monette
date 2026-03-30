@@ -1,12 +1,12 @@
 # Monette — macOS Screenshot Tool
 
-A lightweight, native macOS screenshot tool with beautiful output. Personal alternative to CleanShot X / Xnapper. Named after Claude Monet — a little tool that turns ordinary screen captures into something impressionistic and polished.
+A lightweight, native macOS screenshot tool with beautiful output. Open-source alternative to CleanShot X / Xnapper. Named after Claude Monet, a little tool that turns ordinary screen captures into something impressionistic and polished.
 
 ## Project Overview
 
-Monette is a menu bar app that captures windows or screen regions, then presents a simple editor where the user can add backgrounds, rounded corners, padding, and shadows — producing share-ready PNG screenshots. Built with SwiftUI + AppKit on macOS Tahoe 26, targeting Liquid Glass design.
+Monette is a macOS app that captures windows or screen regions, then presents a simple editor where you can add backgrounds, rounded corners, padding, and shadows, producing share-ready PNG screenshots. Built with SwiftUI + AppKit on macOS Tahoe 26.
 
-**This is a personal-use app.** No App Store distribution, no subscriptions, no analytics. Just a fast, beautiful tool that runs on my Mac.
+**Current status:** Phase 1 complete (editor view with styling controls). Phase 2 (window capture) is next.
 
 ## Tech Stack
 
@@ -23,38 +23,33 @@ Monette is a menu bar app that captures windows or screen regions, then presents
 ```
 Monette/
 ├── App/
-│   ├── MonetteApp.swift          # @main, menu bar app (no dock icon)
-│   ├── AppDelegate.swift           # NSApplicationDelegate for global hotkeys, permissions
-│   └── AppState.swift              # Observable shared state
-├── Capture/
-│   ├── CaptureManager.swift        # ScreenCaptureKit wrapper, SCScreenshotManager
-│   ├── WindowPicker.swift          # List available windows via SCShareableContent
-│   ├── AreaSelector/
-│   │   ├── OverlayWindow.swift     # Borderless, full-screen NSWindow for area selection
-│   │   ├── SelectionView.swift     # Mouse drag → selection rect, crosshair, dimensions
-│   │   └── OverlayManager.swift    # Multi-monitor overlay coordination
-│   └── HotkeyManager.swift         # CGEvent tap for global keyboard shortcuts
+│   ├── AppDelegate.swift           # NSApplicationDelegate, window transparency config
+│   └── AppState.swift              # @Observable shared state
 ├── Editor/
-│   ├── EditorView.swift            # Main editor window (SwiftUI)
-│   ├── CanvasView.swift            # Screenshot + background + shadow composite preview
+│   ├── EditorView.swift            # Main editor layout (canvas + sidebar + native toolbar)
+│   ├── CanvasView.swift            # Full-bleed background + centered screenshot preview
+│   ├── SidebarView.swift           # Right-side inspector sidebar (translucent material)
 │   ├── Controls/
-│   │   ├── BackgroundPicker.swift  # Gradient/solid/image background selector
+│   │   ├── BackgroundPicker.swift  # Gradient presets + solid color swatches
 │   │   ├── BorderRadiusSlider.swift
-│   │   ├── ShadowControls.swift    # Shadow offset, blur, opacity, color
+│   │   ├── ShadowControls.swift    # Shadow blur, offset, opacity, color
 │   │   ├── PaddingSlider.swift
-│   │   └── PresetSelector.swift    # Save/load style presets
-│   └── ExportManager.swift         # Composite rendering → PNG file
+│   │   └── LabeledSlider.swift     # Reusable slider with label + value display
+│   └── ExportManager.swift         # Save PNG + copy to clipboard
 ├── Models/
-│   ├── Screenshot.swift            # Captured image + metadata
-│   ├── StylePreset.swift           # Background, radius, shadow, padding config
-│   └── ExportSettings.swift        # Output path, format, scale factor
+│   ├── Screenshot.swift            # Captured image + metadata (test image for dev)
+│   └── StylePreset.swift           # Background, radius, shadow, padding config
 ├── Utilities/
-│   ├── PermissionManager.swift     # Screen recording permission check/request
-│   └── ImageCompositor.swift       # CoreGraphics: background + rounded clip + shadow → final image
+│   └── ImageCompositor.swift       # CoreGraphics compositing: background + rounded clip + shadow → final image
+├── MonetteApp.swift                # @main entry point, window configuration
 └── Resources/
-    ├── Assets.xcassets              # App icon (Liquid Glass multi-layer), accent colors
-    └── Backgrounds/                 # Built-in gradient images
+    └── Assets.xcassets              # App icon, accent colors
 ```
+
+**Planned (not yet built):**
+- `Capture/` — ScreenCaptureKit integration, window picker, area selector (Phase 2-3)
+- `HotkeyManager.swift` — Global keyboard shortcuts (Phase 4)
+- `PermissionManager.swift` — Screen Recording permission flow (Phase 2)
 
 ### Key Design Decisions
 
@@ -93,7 +88,7 @@ xattr -cr build/Debug/Monette.app
 - Use `@Observable` (Observation framework) instead of `ObservableObject` + `@Published` — this is the modern pattern for macOS 26.
 - Keep SwiftUI view bodies small. If a view body triggers "compiler unable to type-check this expression in reasonable time", break it into smaller subviews.
 - Use `CGImage` for capture output (easier to integrate than `CMSampleBuffer`).
-- All user-facing strings should be hardcoded English (no localization needed for personal use).
+- All user-facing strings should be hardcoded English (no localization for now).
 - Prefer named constants over magic numbers for dimensions, padding, default values.
 
 ## Permissions
@@ -110,16 +105,15 @@ The app needs **Screen Recording** permission. Handle this at startup:
 
 Build incrementally. Each phase should produce a working app.
 
-### Phase 1: Editor View (Pure SwiftUI)
-Start with a hardcoded test image. Build the editor UI that composites:
-- Screenshot on a canvas with configurable background (solid colors, gradients)
-- Rounded corners with adjustable radius (0–32px)
-- Drop shadow with adjustable blur, offset, opacity, color
-- Padding around the screenshot
-- "Save as PNG" button → file dialog → write composited image
-- Liquid Glass toolbar/controls
-
-**Why start here:** This is 100% SwiftUI, no permissions needed, fastest iteration loop. Claude Code can build and you can verify visually by running the app.
+### Phase 1: Editor View (Pure SwiftUI) ✅ COMPLETE
+- Translucent right-side inspector sidebar (`.ultraThinMaterial`) with section-organized controls
+- Configurable backgrounds: 8 gradient presets + 16 solid color swatches
+- Rounded corners (0-32px), drop shadow (blur, offset, opacity, color), padding (0-120px)
+- Full-bleed gradient/solid background fills the entire canvas area
+- Native SwiftUI `.toolbar {}` with Save PNG + Copy to Clipboard buttons
+- CoreGraphics compositing pipeline (`ImageCompositor`) for pixel-perfect Retina PNG export
+- Transparent window with `titlebarAppearsTransparent` for native macOS feel
+- `@Observable` state management, dark color scheme
 
 ### Phase 2: Window Capture
 - Integrate SCScreenshotManager for single-window capture
@@ -137,7 +131,7 @@ Start with a hardcoded test image. Build the editor UI that composites:
 ### Phase 4: Global Hotkeys & Polish
 - Register global hotkeys (e.g., ⌘⇧4 alternative like ⌃⇧1 for window, ⌃⇧2 for area)
 - Style presets (save/load favorite background + radius + shadow combos)
-- Copy to clipboard option
+- ~~Copy to clipboard option~~ (done in Phase 1)
 - Recent captures history in menu bar dropdown
 - Liquid Glass refinements: adaptive glass on toolbar, scroll edge effects
 
