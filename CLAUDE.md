@@ -6,7 +6,7 @@ A lightweight, native macOS screenshot tool with beautiful output. Open-source a
 
 Monette is a macOS app that captures windows or screen regions, then presents a simple editor where you can add backgrounds, rounded corners, padding, and shadows, producing share-ready PNG screenshots. Built with SwiftUI + AppKit on macOS Tahoe 26.
 
-**Current status:** Phase 1 complete (editor view with styling controls). Phase 2 (window capture) is next.
+**Current status:** Phase 2 complete (window capture, menu bar, drag-and-drop/paste input). Phase 3 (area capture) is next.
 
 ## Tech Stack
 
@@ -23,11 +23,18 @@ Monette is a macOS app that captures windows or screen regions, then presents a 
 ```
 Monette/
 ├── App/
-│   ├── AppDelegate.swift           # NSApplicationDelegate, window transparency config
-│   └── AppState.swift              # @Observable shared state
+│   ├── AppDelegate.swift           # NSApplicationDelegate, menu bar setup, permission check, capture flow
+│   ├── AppState.swift              # @Observable shared state, EditorContent enum (empty/loaded)
+│   └── MenuBarManager.swift        # NSStatusItem menu bar icon + menu, window picker panel
+├── Capture/
+│   ├── CaptureService.swift        # SCScreenshotManager wrapper, async capture API
+│   └── WindowPicker.swift          # SwiftUI window picker view hosted in NSPanel
+├── Permissions/
+│   └── PermissionManager.swift     # Screen Recording permission check + request
 ├── Editor/
-│   ├── EditorView.swift            # Main editor layout (canvas + sidebar + native toolbar)
+│   ├── EditorView.swift            # Main editor layout (canvas + sidebar + toolbar + drop/paste)
 │   ├── CanvasView.swift            # Full-bleed background + centered screenshot preview
+│   ├── EmptyStateView.swift        # Drop zone shown when no image loaded
 │   ├── SidebarView.swift           # Right-side inspector sidebar (translucent material)
 │   ├── Controls/
 │   │   ├── BackgroundPicker.swift  # Gradient presets + solid color swatches
@@ -37,19 +44,18 @@ Monette/
 │   │   └── LabeledSlider.swift     # Reusable slider with label + value display
 │   └── ExportManager.swift         # Save PNG + copy to clipboard
 ├── Models/
-│   ├── Screenshot.swift            # Captured image + metadata (test image for dev)
+│   ├── Screenshot.swift            # Captured image + metadata + scaleFactor
 │   └── StylePreset.swift           # Background, radius, shadow, padding config
 ├── Utilities/
 │   └── ImageCompositor.swift       # CoreGraphics compositing: background + rounded clip + shadow → final image
-├── MonetteApp.swift                # @main entry point, window configuration
+├── MonetteApp.swift                # @main entry point, LSUIElement menu bar app, suppressed launch
 └── Resources/
     └── Assets.xcassets              # App icon, accent colors
 ```
 
 **Planned (not yet built):**
-- `Capture/` — ScreenCaptureKit integration, window picker, area selector (Phase 2-3)
+- `Capture/AreaSelector.swift` — Area selection overlay (Phase 3)
 - `HotkeyManager.swift` — Global keyboard shortcuts (Phase 4)
-- `PermissionManager.swift` — Screen Recording permission flow (Phase 2)
 
 ### Key Design Decisions
 
@@ -115,12 +121,17 @@ Build incrementally. Each phase should produce a working app.
 - Transparent window with `titlebarAppearsTransparent` for native macOS feel
 - `@Observable` state management, dark color scheme
 
-### Phase 2: Window Capture
-- Integrate SCScreenshotManager for single-window capture
-- Build a window picker (list available windows from SCShareableContent)
-- Menu bar icon with "Capture Window" option
-- Captured image flows into the editor from Phase 1
-- Handle Screen Recording permission flow
+### Phase 2: Window Capture ✅ COMPLETE
+- SCScreenshotManager integration for single-window capture (`CaptureService.swift`)
+- Window picker with grouped-by-app list (`WindowPicker.swift`, hosted in NSPanel)
+- Menu bar icon with "Capture Window...", "Open Editor", "Quit" (`MenuBarManager.swift`)
+- Captured image flows into the editor from Phase 1 via `EditorContent` enum
+- Screen Recording permission check on launch + re-check on menu open (`PermissionManager.swift`)
+- Drag-and-drop image input (drop PNG/JPEG onto editor)
+- Clipboard paste input (Cmd+V)
+- "Capture Again" toolbar button
+- LSUIElement menu bar app (no dock icon, editor window suppressed on launch)
+- Empty state with drop zone when no image loaded
 
 ### Phase 3: Area Capture
 - Full-screen transparent overlay window (AppKit NSWindow)

@@ -3,11 +3,26 @@ import Foundation
 
 struct Screenshot {
     let image: CGImage
+    let scaleFactor: CGFloat
     let createdAt: Date
+    let windowTitle: String?
+    let appName: String?
+    let bundleIdentifier: String?
 
-    init(image: CGImage, createdAt: Date = Date()) {
+    init(
+        image: CGImage,
+        scaleFactor: CGFloat = 2,
+        createdAt: Date = Date(),
+        windowTitle: String? = nil,
+        appName: String? = nil,
+        bundleIdentifier: String? = nil
+    ) {
         self.image = image
+        self.scaleFactor = scaleFactor
         self.createdAt = createdAt
+        self.windowTitle = windowTitle
+        self.appName = appName
+        self.bundleIdentifier = bundleIdentifier
     }
 
     static func createTestImage() -> CGImage? {
@@ -27,7 +42,6 @@ struct Screenshot {
         let w = CGFloat(width)
         let h = CGFloat(height)
 
-        // Flip to top-down coordinates for natural drawing
         context.translateBy(x: 0, y: h)
         context.scaleBy(x: 1, y: -1)
 
@@ -57,26 +71,26 @@ struct Screenshot {
             context.fillEllipse(in: CGRect(x: cx - 12, y: cy - 12, width: 24, height: 24))
         }
 
-        // Title text placeholder (centered bar)
+        // Title text placeholder
         context.setFillColor(CGColor(srgbRed: 0.5, green: 0.5, blue: 0.58, alpha: 1))
         context.fill(CGRect(x: w / 2 - 100, y: titleBarHeight / 2 - 8, width: 200, height: 16))
 
-        // Code lines simulating a code editor
+        // Code lines
         let codeLines: [(y: CGFloat, indent: CGFloat, width: CGFloat, r: Double, g: Double, b: Double)] = [
-            (140, 48, 240, 0.68, 0.47, 0.86),     // keyword (purple)
-            (180, 48, 400, 0.56, 0.74, 0.93),     // function (blue)
-            (220, 48, 160, 0.42, 0.60, 0.42),     // comment (green)
-            (260, 48, 320, 0.92, 0.72, 0.46),     // string (orange)
-            (300, 48, 500, 0.56, 0.74, 0.93),     // code (blue)
-            (340, 96, 360, 0.86, 0.86, 0.90),     // indented (light)
-            (380, 96, 280, 0.92, 0.72, 0.46),     // string
-            (420, 96, 200, 0.68, 0.47, 0.86),     // keyword
-            (460, 48, 140, 0.86, 0.86, 0.90),     // closing brace
-            (540, 48, 360, 0.68, 0.47, 0.86),     // keyword
-            (580, 48, 600, 0.86, 0.86, 0.90),     // plain
-            (620, 96, 440, 0.56, 0.74, 0.93),     // function
-            (660, 96, 520, 0.92, 0.72, 0.46),     // string
-            (700, 48, 180, 0.86, 0.86, 0.90),     // closing
+            (140, 48, 240, 0.68, 0.47, 0.86),
+            (180, 48, 400, 0.56, 0.74, 0.93),
+            (220, 48, 160, 0.42, 0.60, 0.42),
+            (260, 48, 320, 0.92, 0.72, 0.46),
+            (300, 48, 500, 0.56, 0.74, 0.93),
+            (340, 96, 360, 0.86, 0.86, 0.90),
+            (380, 96, 280, 0.92, 0.72, 0.46),
+            (420, 96, 200, 0.68, 0.47, 0.86),
+            (460, 48, 140, 0.86, 0.86, 0.90),
+            (540, 48, 360, 0.68, 0.47, 0.86),
+            (580, 48, 600, 0.86, 0.86, 0.90),
+            (620, 96, 440, 0.56, 0.74, 0.93),
+            (660, 96, 520, 0.92, 0.72, 0.46),
+            (700, 48, 180, 0.86, 0.86, 0.90),
         ]
 
         for line in codeLines {

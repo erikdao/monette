@@ -2,10 +2,11 @@ import SwiftUI
 
 struct CanvasView: View {
     let screenshot: CGImage
+    let scaleFactor: CGFloat
     let style: StylePreset
 
-    private var imageWidthPt: CGFloat { CGFloat(screenshot.width) / 2 }
-    private var imageHeightPt: CGFloat { CGFloat(screenshot.height) / 2 }
+    private var imageWidthPt: CGFloat { CGFloat(screenshot.width) / scaleFactor }
+    private var imageHeightPt: CGFloat { CGFloat(screenshot.height) / scaleFactor }
 
     var body: some View {
         GeometryReader { geometry in
@@ -18,7 +19,7 @@ struct CanvasView: View {
             ZStack {
                 backgroundView
 
-                Image(decorative: screenshot, scale: 2)
+                Image(decorative: screenshot, scale: scaleFactor)
                     .clipShape(RoundedRectangle(cornerRadius: style.cornerRadius))
                     .shadow(
                         color: style.shadow.color.opacity(style.shadow.opacity),

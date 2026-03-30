@@ -1,24 +1,38 @@
+import AppKit
+import ScreenCaptureKit
 import SwiftUI
 
+enum EditorContent {
+    case empty
+    case loaded(Screenshot)
+}
+
 @Observable
+@MainActor
 class AppState {
-    var screenshot: Screenshot
+    var content: EditorContent = .empty
     var style = StylePreset()
 
-    init() {
-        if let testImage = Screenshot.createTestImage() {
-            self.screenshot = Screenshot(image: testImage)
-        } else {
-            // Fallback: 1x1 white pixel
-            let ctx = CGContext(
-                data: nil, width: 1, height: 1,
-                bitsPerComponent: 8, bytesPerRow: 4,
-                space: CGColorSpaceCreateDeviceRGB(),
-                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
-            )!
-            ctx.setFillColor(CGColor.white)
-            ctx.fill(CGRect(x: 0, y: 0, width: 1, height: 1))
-            self.screenshot = Screenshot(image: ctx.makeImage()!)
-        }
+    let captureService = CaptureService()
+    let permissionManager = PermissionManager()
+
+    var screenshot: Screenshot? {
+        if case .loaded(let s) = content { return s } else { return nil }
+    }
+
+    func loadImage(_ image: CGImage, scaleFactor: CGFloat = 2) {
+        content = .loaded(Screenshot(image: image, scaleFactor: scaleFactor))
+    }
+
+    func captureWindow(_ window: SCWindow) async throws {
+        let image = try await captureService.captureWindow(window)
+        let scale = NSScreen.main?.backingScaleFactor ?? 2
+        content = .loaded(Screenshot(
+            image: image,
+            scaleFactor: scale,
+            windowTitle: window.title,
+            appName: window.owningApplication?.applicationName,
+            bundleIdentifier: window.owningApplication?.bundleIdentifier
+        ))
     }
 }
